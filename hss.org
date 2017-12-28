@@ -1,0 +1,117 @@
+#+TITLE: Hochschulschriften Workflow
+#+AUTHOR: Stefan Schuh
+#+EMAIL: stefan.schuh@uni-graz.at
+#+BABEL: :session *python* :cache yes :exports both :tangle yes 
+
+* Allgemeines
+  Dieses Script hat die Aufgabe, die Datensäte, die von der UniIT bereitgestellt
+  werden, so aufzubereiten, dass sie komfortabel in Alma eingespielt werden
+  können.
+
+  Dinge, die es können soll:
+  - Unabhängig davon sein, ob die UniIT ein File pro Arbeit oder ein File pro
+    Tag liefert.
+  - Separate Output-Dateien erstellen für
+    + elektronisch zugängliche Arbeiten
+    + elektronisch nicht zugängliche Arbeiten
+    + gesperrte Arbeiten
+  - Duplikate entfernen, die entstehen, wenn mehrere VerfasserInnen gemeinsam
+    eine Arbeit schreiben.
+  - Bei gesperrten Arbeiten Abstracts und Links entfernen und bei Bedarf
+    Codierungen anpassen.
+
+*** Voraussetzungen
+    Dieses Skript wird mit Python 3.6 entwickelt. Es wird angestrebt nur die
+    Standardbibliothek zu verwenden, daher sollte kein Virtual Environment
+    notwendig sein.
+
+* Vorbereitendes
+*** Imports
+    Nachdem die Ausgangsdateien als XML geliefert werden brauchen parsen wir
+    dieses mit =xml.etree.ElementTree=. Außerdem brauchen wir das Modul
+    =copy=, da wir Deepcopys erstellen wollen und =os= um die Input Dateien
+    aufzulisten und zu sichern.
+
+    #+name: imports
+    #+BEGIN_SRC python :session *python*
+      import xml.etree.ElementTree as ET
+      import copy
+      import os
+    #+END_SRC
+
+    #+RESULTS: imports
+*** TODO Liste der Input files
+    #+NAME: liste-input-files
+    #+BEGIN_SRC python :session *python*
+      input_dir = "input"
+      infiles = []
+      for filename in os.listdir(input_dir):
+          infiles.append(input_dir + "/" + filename)
+    #+END_SRC
+
+    #+RESULTS: liste-input-files
+    
+*** Namespaces
+    Damit beim schreiben der Ausgangsdateien der marc-Namespace richtig
+    aufgelöst wird, müssen wir ihn gleich registrieren. Außerdem machen wir ein
+    Dictionary mit dem Namespace, damit wir beim Parsen nicht immer den ganzen
+    Namespace auflösen müssen (siehe [[https://stackoverflow.com/a/14853417]]):
+    
+    #+NAME: namespaces
+    #+BEGIN_SRC python :session *python*
+      ET.register_namespace('marc', 'http://www.loc.gov/MARC21/slim')
+      ns = {'marc': 'http://www.loc.gov/MARC21/slim'}
+    #+END_SRC
+
+*** Templates für Output
+    Nachdem die Output-Files alle das gleiche Wurzelelment haben sollen,
+    verwenden wir dieses Template:
+    #+NAME: xml-template
+    #+BEGIN_SRC python :session *python*
+      template = """
+      <marc:collection xmlns:marc="http://www.loc.gov/MARC21/slim" 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:schemaLocation="http://www.loc.gov/MARC21/slim 
+      http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd"/>
+      """
+    #+END_SRC
+
+*** TODO Einzelne Elemente für Input und Output erstellen
+    Es werden mehrere Elemente erstellt, die dann die Wurzeln für die Bäume
+    sind, die im Endeffekt in die Output-Dateien geschrieben werden.
+    - =master= :: In diesen Baum werden alle Input-Datensätze geladen.
+    - =el_zug= :: In diesen Baum kommen alle elektronisch zugänglichen Arbeiten.
+    - =el_nicht= :: In diesen Baum kommen die elektronisch nicht
+         zugänglichen Arbeiten.
+    - =gesperrt= :: In diesen Baum kommen die gesperrten Arbeiten.
+    
+    #+BEGIN_SRC python :session *python*
+    master = ET.fromstring(template)
+    el_zug = ET.fromstring(template)
+    el_nicht = ET.fromstring(template)
+    gesperrt = ET.fromstring(template)
+    #+END_SRC
+
+    #+RESULTS:
+    : <Element '{http://www.loc.gov/MARC21/slim}collection' at 0x02F55720>
+
+*** TODO Die Input files ins =master=-Element einlesen
+    Über die Infiles iterieren und alle ins Elment =master= einlesen
+    #+NAME: read-in-input-files
+    #+BEGIN_SRC python :session *python*
+      for file in infiles:
+          tree = ET.parse(file)
+          root = tree.getroot()
+          for record in root.findall("./marc:record", ns):
+              master.append(record)
+    #+END_SRC    
+
+    #+RESULTS:
+
+*** TODO Feststellen welche Datensätze zu welcher Klasse gehören
+* Alles Zusammensetzen und ein Python-Script machen
+  #+BEGIN_SRC python :tangle hss.py :noweb yes
+  #!/bin/python3.6
+  <<imports>>  
+  <<namespaces>>
+  #+END_SRC

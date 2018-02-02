@@ -20,6 +20,19 @@ el_zug = ET.fromstring(template)
 el_nicht = ET.fromstring(template)
 gesperrt = ET.fromstring(template)
 
+def make_xpath(tag, ind, subfield):
+    """Gibt einen XPATH-Ausdruck als String zurück"""
+    if "*" in ind:
+        if ind == "**":
+            return f'./*[@tag="{tag}"]/*[@code="{subfield}"]'
+        elif ind[0] == "*":
+            return f'./*[@tag="{tag}"][@ind2="{ind[1]}"]/*[@code="{subfield}"]'
+        elif ind[1] == "*":
+            return f'./*[@tag="{tag}"][@ind1="{ind[0]}"]/*[@code="{subfield}"]'
+    else:
+        return f'./*[@tag="{tag}"][@ind1="{ind[0]}"][@ind2="{ind[1]}"]/*[@code="{subfield}"]'
+
+
 def read_input_files(indir):
     """Liest alle Input-Files und gibt eine Liste mit record-Elmenten (eines pro
     Datensatz) zurück. Wenn eine Arbeit von mehreren Personen eingereicht wurde,

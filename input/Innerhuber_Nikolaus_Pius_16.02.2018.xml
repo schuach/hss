@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<marc:collection xmlns:marc="http://www.loc.gov/MARC21/slim" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.loc.gov/MARC21/slim 
+http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+  <marc:record>
+    <marc:leader>00000nam a2200421 c 4500</marc:leader>
+    <marc:controlfield tag="007">cr |||||||||||</marc:controlfield>
+    <marc:controlfield tag="007">tu</marc:controlfield>
+    <marc:controlfield tag="008">      |2018    au       m    ||| |     u</marc:controlfield>
+    <marc:datafield tag="040" ind1=" " ind2=" ">
+      <marc:subfield code="a">UBG</marc:subfield>
+      <marc:subfield code="b">ger</marc:subfield>
+      <marc:subfield code="c">VL-WG-UBG</marc:subfield>
+      <marc:subfield code="e">rda</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="044" ind1=" " ind2=" ">
+      <marc:subfield code="c">XA-AT</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="100" ind1="1" ind2=" ">
+      <marc:subfield code="a">Innerhuber, Nikolaus Pius</marc:subfield>
+      <marc:subfield code="4">aut</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="245" ind1="0" ind2="0">
+      <marc:subfield code="a">Positionierung der Religionsgemeinschaften in den &quot;Neuen Medien&quot;. Wie sich Religionsgemeinschaften in der heutigen Welt der Generation Y in den &quot;Neuen Medien&quot; positionieren und etablieren.</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="246" ind1="3" ind2="3">
+      <marc:subfield code="a">Positioning of religious communities in the &quot;New Media&quot; - How religious communities in today`s society of generation Y position and establish themselves in the &quot;New Media&quot;</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="264" ind1=" " ind2="1">
+      <marc:subfield code="a">Graz</marc:subfield>
+      <marc:subfield code="c">2018</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="336" ind1=" " ind2=" ">
+      <marc:subfield code="b">txt</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="337" ind1=" " ind2=" ">
+      <marc:subfield code="b">n</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="338" ind1=" " ind2=" ">
+      <marc:subfield code="b">nc</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="500" ind1=" " ind2=" ">
+      <marc:subfield code="a">Arbeit an der Bibliothek noch nicht eingelangt - Daten nicht geprüft</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="500" ind1=" " ind2=" ">
+      <marc:subfield code="a">Abweichender Titel laut Übersetzung des Verfassers/der Verfasserin</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="502" ind1=" " ind2=" ">
+      <marc:subfield code="b">Masterarbeit</marc:subfield>
+      <marc:subfield code="c">Karl-Franzens-Universität Graz</marc:subfield>
+      <marc:subfield code="d">2018</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="520" ind1=" " ind2=" ">
+        <marc:subfield code="a">ger: Positionierung der Religionsgemeinschaften in den &quot;Neuen Medien&quot; - Wie sich Religionsgemeinschaften in der heutigen Welt der Generation Y in den &quot;Neuen Medien&quot; positionieren und etablieren.  Kurzfassung Die vorliegende Masterarbeit beschäftigt sich damit, wie sich Religionsgemeinschaften in den „Neuen Medien“ positioniert bzw. etabliert haben und welchen Einfluss diese auf bestimmte Zielgruppen durch diverse Medienauftritte in den sozialen Medien auf sie ausüben. Zunächst wird die Frage behandelt, ob die Vertreter der einzelnen Religionsgemeinschaften die Verwendung von „Neuen Medien“ als wichtig empfinden und weiters wird analysiert, ob diese diverse Profile auch regelmäßig nutzen und betreiben. Es wird des Weiteren untersucht, ob man durch die Präsenz in den diversen Social Media Portalen wie beispielsweise Facebook, Twitter und Instagram, sowie dem Instant-Messaging-Dienst WhatsApp, (junge) Menschen, wobei der Fokus in dieser Masterarbeit verstärkt auf die Personen der Generation Y gelegt wird, besser erreichen und diese somit an die jeweilige Religion langfristig binden kann. Um den Umfang der Arbeit jedoch einzuschränken, werden drei der fünf Weltreligionen, nämlich das Christentum, der Islam und der Buddhismus sowie wichtige Vertreter dieser Glaubensgemeinschaften in der Recherche berücksichtigt und analysiert. Die Untersuchung innerhalb dieser Masterarbeit setzt sich zum einen aus einer Literaturrecherche zu diesem Thema zusammen und zum anderen wird diese Literaturrecherche durch eine Trendanalyse, bei der die Suchanfragen der Suchmaschine Google via Google Trends analysiert werden, untermauert. Außerdem werden Social Media Profile bzw. Auftritte von Vertretern der Religionsgemeinschaften individuell bewertet. Eine Bewertung, ob diese Mediennutzung jedoch kulturell oder religiös getrieben ist, konnte nicht eruiert werden, da die Grenzen der Kultur und Religion überfließend sind. Was aber aus der Literaturrecherche ist allerdings hervorgegangen ist, dass die kirchlichen Akteure die Chance der Medienvielfalt und der zugehörigen Dienste nutzen, um die Generation Y zu erreichen.</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="520" ind1=" " ind2=" ">
+      <marc:subfield code="a">eng: This master thesis deals with the positioning and establishment of religious communities around the world in the „New Media“ and which impact these media appearance exerts on a specific target group. Initially, it is analyzed in what way the representatives of the religious communities think about “New Media” and whether they use it regularly and maintain their different profiles to get in touch with their followers. Furthermore, the underlying master thesis examines the benefits of reaching and tying young people in long-term whilst using Social Media networks, such as Facebook, Twitter and Instagram or the instant-messaging-service WhatsApp, whereby it emphasizes on persons of the Generation Y. In order to reduce the scope of the thesis, it focuses on three out of five world religious, namely the Christianity, the Islam and the Buddhism. In the context of these mentioned religions, some important representatives are evaluated. The analysis starts with a literature research, followed by a trend analysis concerning the queries on Google via Google Trends and an evaluation of the official social media presence. An assessment of whether this media usage is culturally or religiously driven could not be established, as the boundaries of culture and religion are fluent. However, the literature review revealed that church actors take the opportunity of using media diversity and related services to reach generation Y.</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="655" ind1=" " ind2="7">
+      <marc:subfield code="a">Hochschulschrift</marc:subfield>
+      <marc:subfield code="0">(DE-588)4113937-9</marc:subfield>
+      <marc:subfield code="2">gnd-content</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="700" ind1="1" ind2=" ">
+      <marc:subfield code="a">Bretterhofer, Lisa</marc:subfield>
+      <marc:subfield code="4">aut</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="751" ind1=" " ind2=" ">
+      <marc:subfield code="a">Graz</marc:subfield>
+      <marc:subfield code="0">(DE-588)4021912-4</marc:subfield>
+      <marc:subfield code="4">uvp</marc:subfield>
+      <marc:subfield code="2">gnd</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="856" ind1="4" ind2=" ">
+      <marc:subfield code="u">https://it013179.pers.ad.uni-graz.at:7090/Sowi/1cce5865cf5ded1d489a7e50cee8e15f.pdf</marc:subfield>
+      <marc:subfield code="x">UBG</marc:subfield>
+      <marc:subfield code="3">Volltext</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="970" ind1="2" ind2=" ">
+      <marc:subfield code="d">HS-MASTER</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="971" ind1="1" ind2=" ">
+      <marc:subfield code="a">Rauch, Wolf</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="971" ind1="3" ind2=" ">
+      <marc:subfield code="a">2018-02</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="971" ind1="5" ind2=" ">
+      <marc:subfield code="a">Universität Graz</marc:subfield>
+      <marc:subfield code="b">Sozial- und Wirtschaftswissenschaftliche Fakultät</marc:subfield>
+      <marc:subfield code="c">Institut für Informationswissenschaft und Wirtschaftsinformatik</marc:subfield>
+      <marc:subfield code="0">vls-obvugr-196515</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="974" ind1="0" ind2="s">
+      <marc:subfield code="F">030</marc:subfield>
+      <marc:subfield code="A">a|1urr|||||17</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="974" ind1="0" ind2="s">
+      <marc:subfield code="F">050</marc:subfield>
+      <marc:subfield code="A">a|a|||||g|||||</marc:subfield>
+    </marc:datafield>
+    <marc:datafield tag="974" ind1="0" ind2="s">
+      <marc:subfield code="F">051</marc:subfield>
+      <marc:subfield code="A">mu||||||</marc:subfield>
+    </marc:datafield>
+  </marc:record>
+</marc:collection>

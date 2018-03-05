@@ -1,21 +1,10 @@
 #+TITLE: Hochschulschriften Workflow
 #+AUTHOR: Stefan Schuh
 #+EMAIL: stefan.schuh@uni-graz.at
-#+BABEL: :session *pyhton_hss* :cache yes :exports both :tangle yes 
+#+BABEL: :session *python_hss* :cache yes :exports both :tangle yes 
 
 * Allgemeines
-  Dieses Script hat die Aufgabe, die Datensäte, die von der UniIT bereitgestellt
-  werden, so aufzubereiten, dass sie komfortabel in Alma eingespielt werden
-  können.
-
-  Dinge, die es können soll:
-  - Unabhängig davon sein, ob die UniIT ein File pro Arbeit oder ein File pro
-    Tag liefert.
-  - Separate Output-Dateien erstellen für
-    + elektronisch zugängliche Arbeiten
-    + elektronisch nicht zugängliche Arbeiten
-    + gesperrte Arbeiten
-  - Duplikate entfernen, die entstehen, wenn mehrere VerfasserInnen gemeinsam
+  Dieses Script hat die Aufgabe, die Datensäte, die von der UniIT bereitgestenn mehrere VerfasserInnen gemeinsam
     eine Arbeit schreiben.
   - Bei gesperrten Arbeiten Abstracts und Links entfernen und bei Bedarf
     Codierungen anpassen.
@@ -33,15 +22,16 @@
     aufzulisten und zu sichern.
 
     #+name: imports
-    #+BEGIN_SRC python :session *pyhton_hss*
+    #+BEGIN_SRC python :session *python_hss*
       import xml.etree.ElementTree as ET
       import os
+      import datetime
     #+END_SRC
 
     #+RESULTS: imports
 *** TODO Liste der Input files
     #+NAME: liste-input-files
-    #+BEGIN_SRC python :session *pyhton_hss*
+    #+BEGIN_SRC python :session *python_hss*
       input_dir = "input"
       infiles = []
       for filename in os.listdir(input_dir):
@@ -57,7 +47,7 @@
     Namespace auflösen müssen (siehe [[https://stackoverflow.com/a/14853417]]):
     
     #+NAME: namespaces
-    #+BEGIN_SRC python :session *pyhton_hss*
+    #+BEGIN_SRC python :session *python_hss*
       ET.register_namespace('marc', 'http://www.loc.gov/MARC21/slim')
       ns = {'marc': 'http://www.loc.gov/MARC21/slim'}
     #+END_SRC
@@ -68,7 +58,7 @@
     Nachdem die Output-Files alle das gleiche Wurzelelment haben sollen,
     verwenden wir dieses Template:
     #+NAME: xml-template
-    #+BEGIN_SRC python :session *pyhton_hss*
+    #+BEGIN_SRC python :session *python_hss*
       template = """
       <marc:collection xmlns:marc="http://www.loc.gov/MARC21/slim" 
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -79,6 +69,7 @@
 
     #+RESULTS: xml-template
 
+* Verarbeitung
 *** TODO Einzelne Elemente für Input und Output erstellen
     Es werden mehrere Elemente erstellt, die dann die Wurzeln für die Bäume
     sind, die im Endeffekt in die Output-Dateien geschrieben werden.
@@ -88,7 +79,7 @@
     - =gesperrt= :: In diesen Baum kommen die gesperrten Arbeiten.
     
     #+NAME: output-trees
-    #+BEGIN_SRC python :session *pyhton_hss*
+    #+BEGIN_SRC python :session *python_hss*
     el_zug = ET.fromstring(template)
     el_nicht = ET.fromstring(template)
     gesperrt = ET.fromstring(template)
@@ -98,11 +89,10 @@
 
     #+RESULTS:
 
-*** TODO Die Input files in eine Liste einlesen
-    Über die Infiles iterieren und alle =marc:record=-Elemente in die Liste
+    Danach über die Infiles iterieren und alle =marc:record=-Elemente in die Liste
     =records= einlesen.
     #+NAME: read-in-input-files
-    #+BEGIN_SRC python :session *pyhton_hss*
+    #+BEGIN_SRC python :session *python_hss*
       records = []
       for file in infiles:
           tree = ET.parse(file)
@@ -132,7 +122,7 @@
     | elektronisch zugänglich       | Die anderen Kriterien treffen nicht zu                                               | 'el_zug'       |
     
     #+NAME: fun-check-type
-    #+BEGIN_SRC python :session *pyhton_hss*
+    #+BEGIN_SRC python :session *python_hss*
       def check_type(record):
           """Akzeptiert einen Datensatz als Argument (xml.etree.ElementTree.Element)
           und checkt, zu welchem Typ Hochschulschrift es gehärt. Gibt je nach Typ
@@ -148,12 +138,10 @@
 
     #+RESULTS: fun-check-type
 
-    #+RESULTS:
-
-*** Die einzelnen Datenzätze ihrem jeweiligen Tree zuordnen
     Je nach Typ werden die einzelnen Datenzätze ihrem jeweiligen xml-Baum
     zugeordnet.
-    #+BEGIN_SRC python :session *pyhton_hss*
+    #+NAME: fun-alloc-to-tree
+    #+BEGIN_SRC python :session *python_hss*
       def alloc_to_tree(record):
           """Ordnet jeden record dem jeweiligen xml-Baum zu"""
           hss_type = check_type(record)
@@ -165,10 +153,28 @@
               el_zug.append(record)
     #+END_SRC
 
+    #+RESULTS: fun-alloc-to-tree
+
     #+RESULTS:
 
+*** Die Bäume in Dateien schreiben
+    #+NAME: fun-write-tree
+    #+BEGIN_SRC python :session *python_hss*
+      def write_tree(tree, outfile):
+          """Schreibt "tree" in die Datei "outfile". Akzeptiert ein tree-Objekt und einen
+          String (Dateiname für die Ausgabedatei)
+          """
+          tree = 
+          filename = outfile + "{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now())
+          tree.write(outfile, encoding="utf-8", xml_declaration=True)
+    #+END_SRC
+
+    #+RESULTS: fun-write-tree
+
+    #+RESULTS:
+    
 * Alles Zusammensetzen und ein Python-Script machen
-  #+BEGIN_SRC python :tangle hss.py :noweb yes
+  #+BEGIN_SRC python :tangle hss.py :noweb yes :session *python_hss*
     #!/bin/python3.6
     <<imports>>  
     <<liste-input-files>>
@@ -177,7 +183,11 @@
     <<output-trees>>
     <<read-in-input-files>>
     <<fun-check-type>>
+    <<fun-alloc-to-tree>>
+    <<fun-write-tree>>
   #+END_SRC
+
+  #+RESULTS:
 
 
 * STARTED Tests
@@ -190,7 +200,7 @@
   - 143 elektronisch zugänglich
   - 229 gesamt
 
-  #+BEGIN_SRC python :session *pyhton_hss*
+  #+BEGIN_SRC python :session *python_hss*
     tst_authors = []
     for record in master.findall('./marc:record', ns):
         author = record.find('.//*[@tag="100"]/*[@code="a"]').text
@@ -200,10 +210,20 @@
   #+RESULTS:
 
 
-  #+BEGIN_SRC python :session *pyhton_hss*
+  #+BEGIN_SRC python :session *python_hss*
     for record in records:
         check_type(record)
   #+END_SRC
 
   #+RESULTS:
   : Elektronisch nicht zugänglich
+
+* Physical Mapping
+  Item information Field: 995
+
+  | Subfield | Datafield       | el. zug. | el. nicht | gsprt |
+  |----------+-----------------+----------+-----------+-------|
+  | p        | Item Policy     | -        | 87        | 30    |
+  | b        | Library         | -        | BHB       | BHB   |
+  | c        | Location        | -        | MAG       | GDISS |
+  | s        | Statistics Note |          | xx        | xx    |

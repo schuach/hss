@@ -95,7 +95,7 @@ def dedup(record_list):
 
 def check_type(record):
     """Akzeptiert einen Datensatz als Argument (xml.etree.ElementTree.Element)
-    und checkt, zu welchem Typ Hochschulschrift es gehärt. Gibt je nach Typ
+    und checkt, zu welchem Typ Hochschulschrift es gehört. Gibt je nach Typ
     einen String zurück.
     """
     if record.find('./*[@tag="971"][@ind1="7"]/*[@code="i"]', ns) is not None:
@@ -107,7 +107,7 @@ def check_type(record):
 
 def alloc_to_tree(record_list):
     """Ordnet jeden record dem jeweiligen xml-Baum zu. Akzeptiert eine Liste
-    von record-Elementen als Argiment
+    von record-Elementen als Argument
     """
     for record in record_list:
         hss_type = check_type(record)

@@ -62,9 +62,6 @@ http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
       <marc:subfield code="0">(DE-588)4113937-9</marc:subfield>
       <marc:subfield code="2">gnd-content</marc:subfield>
     </marc:datafield>
-    <marc:datafield tag="700" ind1="1" ind2=" ">
-      <marc:subfield code="4">aut</marc:subfield>
-    </marc:datafield>
     <marc:datafield tag="751" ind1=" " ind2=" ">
       <marc:subfield code="a">Graz</marc:subfield>
       <marc:subfield code="0">(DE-588)4021912-4</marc:subfield>

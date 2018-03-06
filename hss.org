@@ -227,3 +227,12 @@
   | b        | Library         | -        | BHB       | BHB   |
   | c        | Location        | -        | MAG       | GDISS |
   | s        | Statistics Note |          | xx        | xx    |
+
+* Input
+  | Name         | Typ      | Zweite VerfasserInnen |
+  |--------------+----------+-----------------------|
+  | Ackerl       | el nicht |                       |
+  | Ahn          | gesperrt |                       |
+  | Aichner      | el zug   |                       |
+  | Bretterhofer |          | Innerhuber            |
+  | Innerhuber   |          | Bretterhofer          |

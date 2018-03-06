@@ -55,14 +55,21 @@ def read_input_files(indir):
 
     return records
 
+def print_names(record_list):
+    """Helper function die für jeden Datensatz in einer Liste den Inhalt von
+    Feld 100 $$a ausgibt"""
+    for record in record_list:
+        print(record.find(make_xpath("100","**","a")).text)
+
 def dedup(record_list):
     """Entfernt dublette Datensätze, die dadurch entstehen, dass mehrere
     Personen gemeinsam eine Arbeit verfassen. Nimmt eine Liste von
     record-Elementen als Input und gibt eine deduplizierte Liste zurück.
     """
 
-    prim_entries = []
-    add_entries = []
+    field_100 = make_xpath("100", "**", "a")
+    field_700 = make_xpath("700", "**", "a")
+
     authors = []
     outlist = []
     dups = []
@@ -71,26 +78,30 @@ def dedup(record_list):
         author = record.find('.//*[@tag="100"]/*[@code="a"]').text
 
         # prüfen ob MARC 700 vorhanden
-        if record.find('.//*[@tag="700"]/*[@code="a"]') is not None:
-            contr = record.find('.//*[@tag="700"]/*[@code="a"]').text
-        else:
-            contr = None
-
-        # sortieren
-        if contr in authors:
-            prim_entries.append(author)
-            add_entries.append(contr)
-            dups.append(record)
-        else:
-            outlist.append(record)
+        if record.find(field_700) is None:
             authors.append(author)
+            outlist.append(record)
+            continue
+        else:
+            people = []
+            people.append(author)
+            for p in record.findall(field_700):
+                people.append(p.text)
+
+            dup = False
+            for p in people:
+                if p in authors:
+                    dup = True
+                else:
+                    authors.append(p)
+
+            if dup == False:
+                outlist.append(record)
+            else:
+                dups.append(record)
 
 
-    for entry in prim_entries:
-        if entry not in add_entries:
-            print("700, no match: ", entry)
-
-    return outlist
+    return outlist, dups
 
 
 def check_type(record):
@@ -103,9 +114,9 @@ def check_type(record):
     elif record.find('./*[@tag="971"][@ind1="7"]/*[@code="a"]', ns) is not None:
         return "Gesperrt"
     else:
-        return "elektronisch zugänglich"
+        return "Elektronisch zugänglich"
 
-def alloc_to_tree(record_list):
+def make_tree(record_list):
     """Ordnet jeden record dem jeweiligen xml-Baum zu. Akzeptiert eine Liste
     von record-Elementen als Argument
     """
@@ -118,18 +129,99 @@ def alloc_to_tree(record_list):
         else:
             el_zug.append(record)
 
-def write_tree(tree, outfile):
+def inventory(record_list):
+    """Fügt das Feld für den physischen Bestand hinzu"""
+    item_policy = make_xpath("995", "  ", "p")
+    library = make_xpath("995", "  ", "b")
+    location = make_xpath("995", "  ", "c")
+    statistics_note = make_xpath("995", "  ", "s")
+    field970_sfd = make_xpath("970", "2 ", "d")
+
+    for record in record_list:
+        rec_type = check_type(record)
+
+        if rec_type == "Elektronisch zugänglich":
+            # kein inventar für elektronisch zugängliche Arbeiten
+            continue
+        else:
+            # Feld für Inventar einfügen
+
+            # Zuerst das Feld mit den Subfeldern vorbereiten
+            field995 = ET.Element("marc:datafield", attrib={'tag': '995', 'ind1': ' ', 'ind2': " "})
+            f995_sfp = ET.Element("marc:subfield", attrib={'code': "p"})
+            f995_sfb = ET.Element("marc:subfield", attrib={'code': "b"})
+            f995_sfc = ET.Element("marc:subfield", attrib={'code': "c"})
+            f995_sfs = ET.Element("marc:subfield", attrib={'code': "s"})
+            field995.append(f995_sfp)
+            field995.append(f995_sfb)
+            field995.append(f995_sfc)
+            field995.append(f995_sfs)
+
+            # checken welche Statistik passt
+            basekennung = record.find(field970_sfd).text
+            if basekennung == "HS-DISS":
+                stats = "DISS"
+            else:
+                stats = "DIPL"
+
+            # je nach Typ Bestand hinzufügen
+            if rec_type == "Elektronisch nicht zugänglich":
+                f995_sfp.text = "87"
+                f995_sfb.text = "BHB"
+                f995_sfc.text = "MAG"
+                f995_sfs.text = stats
+            elif rec_type == "Gesperrt":
+                f995_sfp.text = "30"
+                f995_sfb.text = "BHB"
+                f995_sfc.text = "GDISS"
+                f995_sfs.text = stats
+            else:
+                continue
+
+
+            record.append(field995)
+
+    return record_list
+
+def write_tree(record_list, outfile):
     """Schreibt "tree" in die Datei "outfile". Akzeptiert ein tree-Objekt und einen
     String (Dateiname für die Ausgabedatei)
     """
     filename = outfile + "_{:%Y-%m-%d_%H-%M}.xml".format(datetime.datetime.now()) 
-    tree = ET.ElementTree(tree)
+    output = ET.fromstring(template)
+    for record in record_list:
+        output.append(record)
+
+    tree = ET.ElementTree(output)
     tree.write(filename, encoding="utf-8", xml_declaration=True)
+
+def write_report(record_list, flag, report_dir=""):
+    xp_name = make_xpath("100", "**", "a")
+    xp_title = make_xpath("245", "**", "a")
+    # header, je nach report
+    if flag == "loadfile":
+        filename = report_dir + "report-loadfile" + "_{:%Y-%m-%d_%H-%M}.xml".format(datetime.datetime.now())
+        header = "*** Zu ladende Datensätze {:%Y-%m-%d_%H-%M} ***\n\n".format(datetime.datetime.now())
+    elif flag == "duplicates":
+        filename = report_dir + "report-duplicates" + "_{:%Y-%m-%d_%H-%M}.xml".format(datetime.datetime.now())
+        header = "*** Nicht zu ladende Duplikate {:%Y-%m-%d_%H-%M} ***\n\n".format(datetime.datetime.now())
+    else:
+        header = ""
+
+
+    with open(filename, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(header)
+        for record in record_list:
+            name = record.find(xp_name).text
+            title = record.find(xp_title).text
+            output_line = f"{name}:\t\t{title}\n"
+            fh.write(output_line)
+
+
 
 def main():
     # Verarbeitung
-    records = read_input_files("input")
-    alloc_to_tree(records)
-    write_tree(el_zug, "el_zug")
-    write_tree(el_nicht, "el_nicht")
-    write_tree(gesperrt, "gesperrt")
+    records, dups = dedup(read_input_files("input"))
+    write_tree(inventory(records), "loadfile")
+    write_report(records, "loadfile")
+    write_report(dups, "duplicates")

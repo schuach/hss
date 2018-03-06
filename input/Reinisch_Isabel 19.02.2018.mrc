@@ -5,9 +5,8 @@ xsi:schemaLocation="http://www.loc.gov/MARC21/slim
 http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
   <marc:record>
     <marc:leader>00000nam a2200421 c 4500</marc:leader>
-    <marc:controlfield tag="007">cr |||||||||||</marc:controlfield>
     <marc:controlfield tag="007">tu</marc:controlfield>
-    <marc:controlfield tag="008">      |2017    au      om    ||| |     u</marc:controlfield>
+    <marc:controlfield tag="008">      |2018    au       m    ||| |     u</marc:controlfield>
     <marc:datafield tag="040" ind1=" " ind2=" ">
       <marc:subfield code="a">UBG</marc:subfield>
       <marc:subfield code="b">ger</marc:subfield>
@@ -18,18 +17,18 @@ http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
       <marc:subfield code="c">XA-AT</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="100" ind1="1" ind2=" ">
-      <marc:subfield code="a">Ahn, Judith Sigrid</marc:subfield>
+      <marc:subfield code="a">Reinisch, Isabel</marc:subfield>
       <marc:subfield code="4">aut</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="245" ind1="0" ind2="0">
-      <marc:subfield code="a">Influence of Social Gestures and Facial Emotional Expressions on Spatial Visual Attention</marc:subfield>
+      <marc:subfield code="a">Starvation-mediated p53 stabilization to support chemotherapy in liver cancer</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="246" ind1="3" ind2="3">
-      <marc:subfield code="a">Influence of Social Gestures and Facial Emotional Expressions on Spatial Visual Attention</marc:subfield>
+      <marc:subfield code="a">Starvation-mediated p53 stabilization to support chemotherapy in liver cancer</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="264" ind1=" " ind2="1">
       <marc:subfield code="a">Graz</marc:subfield>
-      <marc:subfield code="c">2017</marc:subfield>
+      <marc:subfield code="c">2018</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="336" ind1=" " ind2=" ">
       <marc:subfield code="b">txt</marc:subfield>
@@ -49,15 +48,12 @@ http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
     <marc:datafield tag="502" ind1=" " ind2=" ">
       <marc:subfield code="b">Masterarbeit</marc:subfield>
       <marc:subfield code="c">Karl-Franzens-Universität Graz</marc:subfield>
-      <marc:subfield code="d">2017</marc:subfield>
+      <marc:subfield code="d">2018</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="655" ind1=" " ind2="7">
       <marc:subfield code="a">Hochschulschrift</marc:subfield>
       <marc:subfield code="0">(DE-588)4113937-9</marc:subfield>
       <marc:subfield code="2">gnd-content</marc:subfield>
-    </marc:datafield>
-    <marc:datafield tag="700" ind1="1" ind2=" ">
-      <marc:subfield code="4">aut</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="751" ind1=" " ind2=" ">
       <marc:subfield code="a">Graz</marc:subfield>
@@ -69,20 +65,20 @@ http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
       <marc:subfield code="d">HS-MASTER</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="971" ind1="1" ind2=" ">
-      <marc:subfield code="a">Zimmer, Ulrike</marc:subfield>
+      <marc:subfield code="a">Prokesch, Andreas</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="971" ind1="3" ind2=" ">
-      <marc:subfield code="a">2017-11</marc:subfield>
+      <marc:subfield code="a">2018-02</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="971" ind1="5" ind2=" ">
       <marc:subfield code="a">Universität Graz</marc:subfield>
       <marc:subfield code="b">Naturwissenschaftliche Fakultät</marc:subfield>
-      <marc:subfield code="c">Institut für Psychologie</marc:subfield>
+      <marc:subfield code="c">Dekanat der Naturwissenschaftlichen Fakultät</marc:subfield>
       <marc:subfield code="0">vls-obvugr-196515</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="971" ind1="7" ind2=" ">
       <marc:subfield code="a">Arbeit gesperrt</marc:subfield>
-      <marc:subfield code="c">2022-10</marc:subfield>
+      <marc:subfield code="c">2020-02</marc:subfield>
     </marc:datafield>
     <marc:datafield tag="974" ind1="0" ind2="s">
       <marc:subfield code="F">030</marc:subfield>

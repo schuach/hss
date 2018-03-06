@@ -2,6 +2,7 @@
 import xml.etree.ElementTree as ET
 import os
 import datetime
+import texttable as TT
 
 # Namespaces
 ET.register_namespace('marc', 'http://www.loc.gov/MARC21/slim')
@@ -183,11 +184,11 @@ def inventory(record_list):
 
     return record_list
 
-def write_tree(record_list, outfile):
+def write_tree(record_list, out_dir):
     """Schreibt "tree" in die Datei "outfile". Akzeptiert ein tree-Objekt und einen
     String (Dateiname für die Ausgabedatei)
     """
-    filename = outfile + "_{:%Y-%m-%d_%H-%M}.xml".format(datetime.datetime.now()) 
+    filename = os.path.join(out_dir, "loadfile" + "_{:%Y-%m-%d_%H-%M}.xml".format(datetime.datetime.now())) 
     output = ET.fromstring(template)
     for record in record_list:
         output.append(record)
@@ -200,28 +201,61 @@ def write_report(record_list, flag, report_dir=""):
     xp_title = make_xpath("245", "**", "a")
     # header, je nach report
     if flag == "loadfile":
-        filename = report_dir + "report-loadfile" + "_{:%Y-%m-%d_%H-%M}.xml".format(datetime.datetime.now())
-        header = "*** Zu ladende Datensätze {:%Y-%m-%d_%H-%M} ***\n\n".format(datetime.datetime.now())
+        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now()) + "_report-loadfile.xml" )
+        header = " " * 27 + "*** Zu ladende Datensätze {:%Y-%m-%d %H:%M} ***\n".format(datetime.datetime.now())  + " " * 27 + "=" * 51 + "\n\n"
     elif flag == "duplicates":
-        filename = report_dir + "report-duplicates" + "_{:%Y-%m-%d_%H-%M}.xml".format(datetime.datetime.now())
-        header = "*** Nicht zu ladende Duplikate {:%Y-%m-%d_%H-%M} ***\n\n".format(datetime.datetime.now())
+        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now()) + "_report_duplicates.xml")
+        header = " " * 27 + "*** Nicht zu ladende Duplikate {:%Y-%m-%d %H:%M} ***\n".format(datetime.datetime.now())  + " " * 27 + "=" * 51 + "\n\n"
     else:
         header = ""
 
+    table = TT.Texttable()
+    table.header(["VerfasserIn", "Titel", "Art der Hochschulschrift"])
+    table.set_deco(table.HEADER)
+    table.set_cols_width([25, 50, 25])
+    for record in record_list:
+        name = record.find(xp_name).text
+        title = record.find(xp_title).text
+        hss_type = check_type(record)
+        table.add_row([name, title, hss_type])
+
+    tbl_str = table.draw()
 
     with open(filename, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(header)
-        for record in record_list:
-            name = record.find(xp_name).text
-            title = record.find(xp_title).text
-            output_line = f"{name}:\t\t{title}\n"
-            fh.write(output_line)
+        fh.write(tbl_str)
 
+def move_files_to_arch(stage, arch):
+    """Verschiebt die Dateien von stage nach arch."""
+    # Liste der Input-Dateien erstellen
+    files = []
+    for filename in os.listdir(stage):
+        files.append((os.path.join(stage, filename), os.path.join(arch, filename)))
+
+    for fromfile, tofile in files:
+        os.rename(fromfile, tofile)
 
 
 def main():
+    # Pfade
+    # Pfade für PROD
+    stage = "y:/HOCHSCHULSCHRIFTEN/Alma/stage"
+    rep_dir = "y:/HOCHSCHULSCHRIFTEN/Alma/Reports"
+    arch = "y:/HOCHSCHULSCHRIFTEN/Alma/MRC-Archiv"
+    loadfiles = "y:/HOCHSCHULSCHRIFTEN/Alma/loadfiles"
+
+
+    # Pfade für Tests
+    # stage = "C:/Users/schuhs/projects/hss/input"
+    # rep_dir =  "C:/Users/schuhs/projects/hss/reports"
+    # arch =  "C:/Users/schuhs/projects/hss/arch"
+    # loadfiles =  "c:/Users/schuhs/projects/hss/loadfiles"
+
     # Verarbeitung
-    records, dups = dedup(read_input_files("input"))
-    write_tree(inventory(records), "loadfile")
-    write_report(records, "loadfile")
-    write_report(dups, "duplicates")
+    records, dups = dedup(read_input_files(stage))
+    write_tree(inventory(records), loadfiles)
+    write_report(records, "loadfile", rep_dir)
+    write_report(dups, "duplicates", rep_dir)
+    move_files_to_arch(stage, arch)
+
+main()

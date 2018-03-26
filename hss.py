@@ -201,10 +201,10 @@ def write_report(record_list, flag, report_dir=""):
     xp_title = make_xpath("245", "**", "a")
     # header, je nach report
     if flag == "loadfile":
-        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now()) + "_report-loadfile.xml" )
+        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now()) + "_report-loadfile.txt" )
         header = " " * 27 + "*** Zu ladende Datensätze {:%Y-%m-%d %H:%M} ***\n".format(datetime.datetime.now())  + " " * 27 + "=" * 51 + "\n\n"
     elif flag == "duplicates":
-        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now()) + "_report_duplicates.xml")
+        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now()) + "_report_duplicates.txt")
         header = " " * 27 + "*** Nicht zu ladende Duplikate {:%Y-%m-%d %H:%M} ***\n".format(datetime.datetime.now())  + " " * 27 + "=" * 51 + "\n\n"
     else:
         header = ""

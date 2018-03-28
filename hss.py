@@ -141,6 +141,10 @@ def inventory(record_list):
     for record in record_list:
         rec_type = check_type(record)
 
+        # Entfernt die Wickelfelder
+        for wf in record.findall('./*[@tag="974"]', ns):
+            record.remove(wf)
+
         if rec_type == "Elektronisch zugänglich":
             # kein inventar für elektronisch zugängliche Arbeiten
             continue
@@ -239,17 +243,17 @@ def move_files_to_arch(stage, arch):
 def main():
     # Pfade
     # Pfade für PROD
-    stage = "y:/HOCHSCHULSCHRIFTEN/Alma/stage"
-    rep_dir = "y:/HOCHSCHULSCHRIFTEN/Alma/Reports"
-    arch = "y:/HOCHSCHULSCHRIFTEN/Alma/MRC-Archiv"
-    loadfiles = "y:/HOCHSCHULSCHRIFTEN/Alma/loadfiles"
+    # stage = "y:/HOCHSCHULSCHRIFTEN/Alma/stage"
+    # rep_dir = "y:/HOCHSCHULSCHRIFTEN/Alma/Reports"
+    # arch = "y:/HOCHSCHULSCHRIFTEN/Alma/MRC-Archiv"
+    # loadfiles = "y:/HOCHSCHULSCHRIFTEN/Alma/loadfiles"
 
 
     # Pfade für Tests
-    # stage = "C:/Users/schuhs/projects/hss/input"
-    # rep_dir =  "C:/Users/schuhs/projects/hss/reports"
-    # arch =  "C:/Users/schuhs/projects/hss/arch"
-    # loadfiles =  "c:/Users/schuhs/projects/hss/loadfiles"
+    stage = "C:/Users/schuhs/projects/hss/input"
+    rep_dir =  "C:/Users/schuhs/projects/hss/reports"
+    arch =  "C:/Users/schuhs/projects/hss/arch"
+    loadfiles =  "c:/Users/schuhs/projects/hss/loadfiles"
 
     # Verarbeitung
     records, dups = dedup(read_input_files(stage))

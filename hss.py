@@ -132,11 +132,8 @@ def make_tree(record_list):
 
 def inventory(record_list):
     """Fügt das Feld für den physischen Bestand hinzu"""
-    item_policy = make_xpath("995", "  ", "p")
-    library = make_xpath("995", "  ", "b")
-    location = make_xpath("995", "  ", "c")
-    statistics_note = make_xpath("995", "  ", "s")
     field970_sfd = make_xpath("970", "2 ", "d")
+    sperre_ende = make_xpath("971", "7 ", "c")
 
     for record in record_list:
         rec_type = check_type(record)
@@ -157,10 +154,12 @@ def inventory(record_list):
             f995_sfb = ET.Element("marc:subfield", attrib={'code': "b"})
             f995_sfc = ET.Element("marc:subfield", attrib={'code': "c"})
             f995_sfs = ET.Element("marc:subfield", attrib={'code': "s"})
+            f995_sfn = ET.Element("marc:subfield", attrib={'code': "n"})
             field995.append(f995_sfp)
             field995.append(f995_sfb)
             field995.append(f995_sfc)
             field995.append(f995_sfs)
+            field995.append(f995_sfn)
 
             # checken welche Statistik passt
             basekennung = record.find(field970_sfd).text
@@ -180,6 +179,7 @@ def inventory(record_list):
                 f995_sfb.text = "BHB"
                 f995_sfc.text = "GDISS"
                 f995_sfs.text = stats
+                f995_sfn.text = "Arbeit gesperrt bis " + record.find(sperre_ende).text
             else:
                 continue
 
@@ -225,7 +225,7 @@ def write_report(record_list, flag, report_dir=""):
 
     tbl_str = table.draw()
 
-    with open(filename, "w", encoding="utf-8", newline="\n") as fh:
+    with open(filename, "w", encoding="utf-8") as fh:
         fh.write(header)
         fh.write(tbl_str)
 
@@ -243,17 +243,17 @@ def move_files_to_arch(stage, arch):
 def main():
     # Pfade
     # Pfade für PROD
-    # stage = "y:/HOCHSCHULSCHRIFTEN/Alma/stage"
-    # rep_dir = "y:/HOCHSCHULSCHRIFTEN/Alma/Reports"
-    # arch = "y:/HOCHSCHULSCHRIFTEN/Alma/MRC-Archiv"
-    # loadfiles = "y:/HOCHSCHULSCHRIFTEN/Alma/loadfiles"
+    stage = "y:/HOCHSCHULSCHRIFTEN/Alma/stage"
+    rep_dir = "y:/HOCHSCHULSCHRIFTEN/Alma/Reports"
+    arch = "y:/HOCHSCHULSCHRIFTEN/Alma/MRC-Archiv"
+    loadfiles = "y:/HOCHSCHULSCHRIFTEN/Alma/loadfiles"
 
 
     # Pfade für Tests
-    stage = "C:/Users/schuhs/projects/hss/input"
-    rep_dir =  "C:/Users/schuhs/projects/hss/reports"
-    arch =  "C:/Users/schuhs/projects/hss/arch"
-    loadfiles =  "c:/Users/schuhs/projects/hss/loadfiles"
+    # stage = "C:/Users/schuhs/projects/hss/input"
+    # rep_dir =  "C:/Users/schuhs/projects/hss/reports"
+    # arch =  "C:/Users/schuhs/projects/hss/arch"
+    # loadfiles =  "c:/Users/schuhs/projects/hss/loadfiles"
 
     # Verarbeitung
     records, dups = dedup(read_input_files(stage))

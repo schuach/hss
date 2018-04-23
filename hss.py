@@ -155,11 +155,13 @@ def inventory(record_list):
             f995_sfc = ET.Element("marc:subfield", attrib={'code': "c"})
             f995_sfs = ET.Element("marc:subfield", attrib={'code': "s"})
             f995_sfn = ET.Element("marc:subfield", attrib={'code': "n"})
+            f995_sf9 = ET.Element("marc:subfield", attrib={'code': "n"})
             field995.append(f995_sfp)
             field995.append(f995_sfb)
             field995.append(f995_sfc)
             field995.append(f995_sfs)
             field995.append(f995_sfn)
+            field995.append(f995_sf9)
 
             # checken welche Statistik passt
             basekennung = record.find(field970_sfd).text
@@ -169,6 +171,7 @@ def inventory(record_list):
                 stats = "DIPL"
 
             # je nach Typ Bestand hinzufügen
+            f995_sf9.text = "LOCAL"
             if rec_type == "Elektronisch nicht zugänglich":
                 f995_sfp.text = "87"
                 f995_sfb.text = "BHB"

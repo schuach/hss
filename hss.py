@@ -45,7 +45,10 @@ def read_input_files(indir):
 
     # Liste der Input-Dateien erstellen
     for filename in os.listdir(input_dir):
-        infiles.append(os.path.join(input_dir, filename))
+        if filename.startswith("."):
+            continue
+        else:
+            infiles.append(os.path.join(input_dir, filename))
 
     # die einzelen Datensätze deduplizieren und zur Liste records hinzufügen
     for file in infiles:
@@ -155,7 +158,7 @@ def inventory(record_list):
             f995_sfc = ET.Element("marc:subfield", attrib={'code': "c"})
             f995_sfs = ET.Element("marc:subfield", attrib={'code': "s"})
             f995_sfn = ET.Element("marc:subfield", attrib={'code': "n"})
-            f995_sf9 = ET.Element("marc:subfield", attrib={'code': "n"})
+            f995_sf9 = ET.Element("marc:subfield", attrib={'code': "9"})
             field995.append(f995_sfp)
             field995.append(f995_sfb)
             field995.append(f995_sfc)
@@ -257,6 +260,12 @@ def main():
     # rep_dir =  "C:/Users/schuhs/projects/hss/reports"
     # arch =  "C:/Users/schuhs/projects/hss/arch"
     # loadfiles =  "c:/Users/schuhs/projects/hss/loadfiles"
+
+    # Pfade für Tests relativ
+    # stage = "input"
+    # rep_dir =  "reports"
+    # arch =  "arch"
+    # loadfiles =  "loadfiles"
 
     # Verarbeitung
     records, dups = dedup(read_input_files(stage))

@@ -3,6 +3,12 @@ import xml.etree.ElementTree as ET
 import os
 import datetime
 import texttable as TT
+from sys import argv
+
+if len (argv) == 1:
+    machine = "w"
+else:
+    machine = argv[1]
 
 # Namespaces
 ET.register_namespace('marc', 'http://www.loc.gov/MARC21/slim')
@@ -249,12 +255,16 @@ def move_files_to_arch(stage, arch):
 def main():
     # Pfade
     # Pfade für PROD
-    stage = "y:/HOCHSCHULSCHRIFTEN/Alma/stage"
-    rep_dir = "y:/HOCHSCHULSCHRIFTEN/Alma/Reports"
-    arch = "y:/HOCHSCHULSCHRIFTEN/Alma/MRC-Archiv"
-    loadfiles = "y:/HOCHSCHULSCHRIFTEN/Alma/loadfiles"
-
-
+    if machine == "w":
+        stage = "y:/HOCHSCHULSCHRIFTEN/Alma/stage"
+        rep_dir = "y:/HOCHSCHULSCHRIFTEN/Alma/Reports"
+        arch = "y:/HOCHSCHULSCHRIFTEN/Alma/MRC-Archiv"
+        loadfiles = "y:/HOCHSCHULSCHRIFTEN/Alma/loadfiles"
+    elif machine == "l":
+        stage = "/home/schuhs/Y/HOCHSCHULSCHRIFTEN/Alma/stage/"
+        rep_dir = "/home/schuhs/Y/HOCHSCHULSCHRIFTEN/Alma/Reports"
+        arch = "/home/schuhs/Y/HOCHSCHULSCHRIFTEN/Alma/MRC-Archiv"
+        loadfiles = "/home/schuhs/Y/HOCHSCHULSCHRIFTEN/Alma/loadfiles"
     # Pfade für Tests
     # stage = "C:/Users/schuhs/projects/hss/input"
     # rep_dir =  "C:/Users/schuhs/projects/hss/reports"

@@ -147,6 +147,15 @@ def inventory(record_list):
     for record in record_list:
         rec_type = check_type(record)
 
+        # generate 005 field
+        field005 = ET.Element("marc:controlfield", attrib={"tag": "005"})
+        field005.text = datetime.datetime.now().strftime("%Y%m%d%H%M%S.0")
+        record.append(field005)
+
+        # Datum in 008/00-05 schreiben
+        field008 = record.find('./*[@tag="008"]')
+        field008.text = datetime.datetime.now().strftime("%y%m%d") + field008.text[6:]
+
         # Entfernt die Wickelfelder
         for wf in record.findall('./*[@tag="974"]', ns):
             record.remove(wf)
@@ -256,26 +265,30 @@ def main():
     # Pfade
     # Pfade für PROD
     if machine == "w":
+        # Ausführung unter Windows
         stage = "y:/HOCHSCHULSCHRIFTEN/Alma/stage"
         rep_dir = "y:/HOCHSCHULSCHRIFTEN/Alma/Reports"
         arch = "y:/HOCHSCHULSCHRIFTEN/Alma/MRC-Archiv"
         loadfiles = "y:/HOCHSCHULSCHRIFTEN/Alma/loadfiles"
     elif machine == "l":
+        # Pfade für Ausführung unter Linux
         stage = "/home/schuhs/Y/HOCHSCHULSCHRIFTEN/Alma/stage/"
         rep_dir = "/home/schuhs/Y/HOCHSCHULSCHRIFTEN/Alma/Reports"
         arch = "/home/schuhs/Y/HOCHSCHULSCHRIFTEN/Alma/MRC-Archiv"
         loadfiles = "/home/schuhs/Y/HOCHSCHULSCHRIFTEN/Alma/loadfiles"
-    # Pfade für Tests
+    elif machine == "t":
+        # Pfade für Tests relativ
+        stage = "input"
+        rep_dir =  "reports"
+        arch =  "arch"
+        loadfiles =  "loadfiles"
+
+    # Pfade für Tests Windows
     # stage = "C:/Users/schuhs/projects/hss/input"
     # rep_dir =  "C:/Users/schuhs/projects/hss/reports"
     # arch =  "C:/Users/schuhs/projects/hss/arch"
     # loadfiles =  "c:/Users/schuhs/projects/hss/loadfiles"
 
-    # Pfade für Tests relativ
-    # stage = "input"
-    # rep_dir =  "reports"
-    # arch =  "arch"
-    # loadfiles =  "loadfiles"
 
     # Verarbeitung
     records, dups = dedup(read_input_files(stage))

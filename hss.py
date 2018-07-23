@@ -160,6 +160,9 @@ def inventory(record_list):
         for wf in record.findall('./*[@tag="974"]', ns):
             record.remove(wf)
 
+        # In 040 "UBG" durch "AT-UBG" ersetzen
+        record.find(make_xpath("040", "**", "a")).text = "AT-UBG"
+
         if rec_type == "Elektronisch zugänglich":
             # kein inventar für elektronisch zugängliche Arbeiten
             continue

@@ -184,6 +184,9 @@ def inventory(record_list):
             field995.append(f995_sfn)
             field995.append(f995_sf9)
 
+            # 040 $$c auf UBG-HS-online stellen
+            record.find(make_xpath("040", "**", "c")).text = "UBG-HS-online"
+
             # checken welche Statistik passt
             basekennung = record.find(field970_sfd).text
             if basekennung == "HS-DISS":

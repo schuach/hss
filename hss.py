@@ -1,10 +1,11 @@
-#!/bin/python3.6
+#!/usr/bin/env python3
 import xml.etree.ElementTree as ET
 import os
 import datetime
 import texttable as TT
 from sys import argv
 import requests
+from calendar import monthrange
 
 if len (argv) == 1:
     machine = "w"
@@ -256,7 +257,11 @@ def inventory(record_list):
                 f995_sfb.text = "BHB"
                 f995_sfc.text = "GDISS"
                 f995_sfs.text = stats
-                f995_sfn.text = "Arbeit gesperrt bis " + record.find(sperre_ende).text
+                sperrjahr, sperrmonat = record.find(sperre_ende).text.split("-")
+                sperrtag = str(monthrange(int(sperrjahr), int(sperrmonat))[1]).zfill(2)
+                sperrdatum = "-".join([sperrjahr, sperrmonat, sperrtag])
+                f995_sfn.text = f"Arbeit gesperrt bis {sperrdatum}"
+                record.find(sperre_ende).text = sperrdatum
             else:
                 continue
 

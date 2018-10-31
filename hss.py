@@ -4,6 +4,7 @@ import os
 import datetime
 import texttable as TT
 from sys import argv
+import requests
 
 if len (argv) == 1:
     machine = "w"
@@ -26,6 +27,40 @@ http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd"/>
 el_zug = ET.fromstring(template)
 el_nicht = ET.fromstring(template)
 gesperrt = ET.fromstring(template)
+
+# Liste für die Institutscodes, die nicht in VL definiert sind
+bad_code = []
+
+def get_institution_dict():
+    """Return a dictionary of inst_strs and inst_codes."""
+
+    inst_dict = {}
+    vl_mets = requests.get("http://unipub.uni-graz.at/UGR/mets/classification/id/110856")
+    tree = ET.fromstring(vl_mets.text)
+
+    fakultaeten = tree.findall('.//*[@LABEL="Fakultäten der Universität Graz"]/*')
+
+    # das dict befüllen
+    for fakultaet in fakultaeten:
+        fak_label = fakultaet.attrib['LABEL']
+        # die einzelnen Institute einfüllen
+        for inst in fakultaet:
+            inst_label = inst.attrib['LABEL']
+            inst_id = inst.attrib["ID"]
+            inst_dict[(fak_label, inst_label)] = inst_id
+
+    return inst_dict
+
+# TODO als lokale Variable implementieren
+inst_dict = get_institution_dict()
+def get_inst_code(code_dict, inst_strs):
+    """Return the code for a given (fakultät, inst)-tuple of strings."""
+    if inst_strs[0] == "UNI for LIFE":
+        return "ioo:UG:UL"
+    elif inst_strs in code_dict.keys():
+        return code_dict[inst_strs]
+    else:
+        return None
 
 def make_xpath(tag, ind, subfield):
     """Gibt einen XPATH-Ausdruck als String zurück"""
@@ -145,6 +180,21 @@ def inventory(record_list):
     sperre_ende = make_xpath("971", "7 ", "c")
 
     for record in record_list:
+    # Instituscode für VL
+        fakultaet = record.find(make_xpath("971", "5 ", "b")).text
+        institut = record.find(make_xpath("971", "5 ", "c")).text
+        inst_element = record.find(make_xpath("971", "5 ", "c"))
+        inst_code = get_inst_code(inst_dict, (fakultaet, institut))
+
+        if inst_code is None:
+            bad_code.append((fakultaet, institut))
+        elif inst_code == "ioo:UG:UL":
+            record.find(make_xpath("971", "5 ", "0")).text = inst_code
+            record.find(make_xpath("971", "5 ", "c")).text = ""
+        else:
+            record.find(make_xpath("971", "5 ", "0")).text = inst_code
+
+
         rec_type = check_type(record)
 
         # generate 005 field
@@ -301,6 +351,11 @@ def main():
     write_tree(inventory(records), loadfiles)
     write_report(records, "loadfile", rep_dir)
     write_report(dups, "duplicates", rep_dir)
-    move_files_to_arch(stage, arch)
+    # move_files_to_arch(stage, arch)
 
+    if len(bad_code) > 0:
+        with open(rep_dir + "/bad_codes.txt", "w") as fh:
+            fh.write("Codes, die in VL nicht vorhanden sind:\n")
+            for code in bad_code:
+                fh.write("\n" + str(code))
 main()

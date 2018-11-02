@@ -38,7 +38,6 @@ def get_institution_dict():
 
     return inst_dict
 
-
 def get_inst_code(code_dict, institut):
     """Return the code for a given (fakultät, inst)-tuple of strings."""
     if institut == "UNI for LIFE":
@@ -73,6 +72,29 @@ def read_input_files(indir):
 
     return records
 
+def check_type(record):
+    """Akzeptiert einen Datensatz als Argument (xml.etree.ElementTree.Element)
+    und checkt, zu welchem Typ Hochschulschrift es gehört. Gibt je nach Typ
+    einen String zurück.
+    """
+
+    hss_type = None
+    for f in record.get_fields("971"):
+        if not f.indicators[0] == "7":
+            continue
+        else:
+            if "Arbeit gesperrt" in f.value():
+                hss_type = "Gesperrt"
+            elif "AutorIn stimmte der Freigabe des elektronischen Dokuments nicht zu" in f.value():
+                hss_type = "Elektronisch nicht zugänglich"
+
+    if hss_type == None:
+        return "Elektronisch zugänglich"
+    else:
+        return hss_type
+
+
+# TODO
 def dedup(record_list):
     """Entfernt dublette Datensätze, die dadurch entstehen, dass mehrere
     Personen gemeinsam eine Arbeit verfassen. Nimmt eine Liste von
@@ -115,186 +137,106 @@ def dedup(record_list):
     return outlist, dups
 
 
-def check_type(record):
-    """Akzeptiert einen Datensatz als Argument (xml.etree.ElementTree.Element)
-    und checkt, zu welchem Typ Hochschulschrift es gehört. Gibt je nach Typ
-    einen String zurück.
-    """
+# DONE
+def process_record(record):
+    """Verarbeitet einen Datensatz."""
 
-    hss_type = None
-    for f in record.get_fields("971"):
-        if not f.indicators[0] == "7":
+    # Unabhängig vom Typ zu machen
+    # DONE Institutsionscodes
+    for field in record.get_fields("971"):
+        if not field.indicators[0] == "5":
             continue
         else:
-            if "Arbeit gesperrt" in f.value():
-                hss_type = "Gesperrt"
-            elif "AutorIn stimmte der Freigabe des elektronischen Dokuments nicht zu" in f.value():
-                hss_type = "Elektronisch nicht zugänglich"
+            inst_field = field
 
-    if hss_type == None:
-        return "Elektronisch zugänglich"
+    if inst_field["b"] == "UNI for LIFE":
+        institut = "UNI for LIFE"
     else:
-        return hss_type
+        institut = inst_field["c"]
 
-def make_tree(record_list):
-    """Ordnet jeden record dem jeweiligen xml-Baum zu. Akzeptiert eine Liste
-    von record-Elementen als Argument
-    """
-    for record in record_list:
-        hss_type = check_type(record)
-        if hss_type == "Elektronisch nicht zugänglich":
-            el_nicht.append(record)
-        elif hss_type == "Gesperrt":
-            gesperrt.append(record)
+    fakultaet, inst_code = get_inst_code(inst_dict, institut)
+
+    if inst_code is None:
+        bad_code.append(institut)
+    elif inst_code == "ioo:UG:UL":
+        inst_field["0"] = inst_code
+        inst_field.delete_subfield("c")
+    else:
+        inst_field["0"] = inst_code
+        inst_field["b"] = fakultaet
+
+    # DONE 005 erstellen
+    record.add_ordered_field(
+        pymarc.Field(
+            tag = "005"
+        ))
+    record["005"].data = datetime.datetime.now().strftime("%Y%m%d%H%M%S.0")
+    # DONE Datum in 008
+    record["008"].data = datetime.datetime.now().strftime("%y%m%d") + record["008"].data[6:]
+    # DONE Wickelfelder entfernen
+    for field in record.get_fields("974"):
+        record.remove_field(field)
+    # DONE in 040 UBG durch AT-UBG ersetzen
+    record["040"]["a"] = "AT-UBG"
+
+    # Änderungen je nach HSS-Typ
+    # record type checken, um entsprechende Verarbeitung machen zu können
+    rec_type = check_type(record)
+    if not rec_type == "Elektronisch zugänglich":
+        # DONE "UBG-HS-Online" in 040 ## $$c schreiben
+        record["040"]["c"] = "UBG-HS-Online"
+        # DONE Feld für Inventar erstellen
+        inv_field = pymarc.Field(
+            tag = "995",
+            indicators = [" ", " "],
+            subfields = [])
+        record.add_ordered_field(inv_field)
+        # DONE Basekennung auslesen (für Exemplarstatistik)
+        basekennung = record["970"]["d"]
+        if basekennung == "HS-DISS":
+            stat = "DISS"
         else:
-            el_zug.append(record)
+            stat = "DIPL"
+        # DONE je nach rectype die verschiedenen Subfelder checken
+        if rec_type == "Elektronisch nicht zugänglich":
+            inv_field.subfields = ["p", "87",
+                                   "b", "BHB",
+                                   "c", "MAG",
+                                   "s", stat,
+                                   "9", "LOCAL"]
+        elif rec_type == "Gesperrt":
+            # Monatsletzten des Sperrdatums errechnen
+            for field in record.get_fields("971"):
+                if not field.indicators[0] == "7":
+                    continue
+                else:
+                    sperrfeld = field
+            sperrjahr, sperrmonat = field["c"].split("-")
+            sperrtag = str(monthrange(int(sperrjahr), int(sperrmonat))[1]).zfill(2)
+            sperrdatum = "-".join([sperrjahr, sperrmonat, sperrtag])
+            public_note = f"Arbeit gesperrt bis {sperrdatum}"
+            sperrfeld["c"] = sperrdatum
+            # alles in inventarfeld schreiben
+            inv_field.subfields = ["p", "30",
+                                   "b", "BHB",
+                                   "c", "GDISS",
+                                   "s", stat,
+                                   "n", public_note,
+                                   "9", "LOCAL"]
 
 
-def inventory(record_list):
-    """Fügt das Feld für den physischen Bestand hinzu"""
-    field970_sfd = make_xpath("970", "2 ", "d")
-    sperre_ende = make_xpath("971", "7 ", "c")
 
-    for record in record_list:
-    # Instituscode für VL
-        fakultaet = record.find(make_xpath("971", "5 ", "b")).text
-        institut = record.find(make_xpath("971", "5 ", "c")).text
-        inst_element = record.find(make_xpath("971", "5 ", "c"))
-        inst_code = get_inst_code(inst_dict, (fakultaet, institut))
-
-        if inst_code is None:
-            bad_code.append((fakultaet, institut))
-        elif inst_code == "ioo:UG:UL":
-            record.find(make_xpath("971", "5 ", "0")).text = inst_code
-            record.find(make_xpath("971", "5 ", "c")).text = ""
-        else:
-            record.find(make_xpath("971", "5 ", "0")).text = inst_code
-
-        rec_type = check_type(record)
-
-        # generate 005 field
-        field005 = ET.Element("marc:controlfield", attrib={"tag": "005"})
-        field005.text = datetime.datetime.now().strftime("%Y%m%d%H%M%S.0")
-        record.append(field005)
-
-        # Datum in 008/00-05 schreiben
-        field008 = record.find('./*[@tag="008"]')
-        field008.text = datetime.datetime.now().strftime(
-            "%y%m%d") + field008.text[6:]
-
-        # Entfernt die Wickelfelder
-        for wf in record.findall('./*[@tag="974"]', ns):
-            record.remove(wf)
-
-        # In 040 "UBG" durch "AT-UBG" ersetzen
-        record.find(make_xpath("040", "**", "a")).text = "AT-UBG"
-
-        if rec_type == "Elektronisch zugänglich":
-            # kein inventar für elektronisch zugängliche Arbeiten
-            continue
-        else:
-            # Feld für Inventar einfügen
-
-            # Zuerst das Feld mit den Subfeldern vorbereiten
-            field995 = ET.Element(
-                "marc:datafield", attrib={'tag': '995', 'ind1': ' ', 'ind2': " "})
-            f995_sfp = ET.Element("marc:subfield", attrib={'code': "p"})
-            f995_sfb = ET.Element("marc:subfield", attrib={'code': "b"})
-            f995_sfc = ET.Element("marc:subfield", attrib={'code': "c"})
-            f995_sfs = ET.Element("marc:subfield", attrib={'code': "s"})
-            f995_sfn = ET.Element("marc:subfield", attrib={'code': "n"})
-            f995_sf9 = ET.Element("marc:subfield", attrib={'code': "9"})
-            field995.append(f995_sfp)
-            field995.append(f995_sfb)
-            field995.append(f995_sfc)
-            field995.append(f995_sfs)
-            field995.append(f995_sfn)
-            field995.append(f995_sf9)
-
-            # 040 $$c auf UBG-HS-online stellen
-            record.find(make_xpath("040", "**", "c")).text = "UBG-HS-online"
-
-            # checken welche Statistik passt
-            basekennung = record.find(field970_sfd).text
-            if basekennung == "HS-DISS":
-                stats = "DISS"
-            else:
-                stats = "DIPL"
-
-            # je nach Typ Bestand hinzufügen
-            f995_sf9.text = "LOCAL"
-            if rec_type == "Elektronisch nicht zugänglich":
-                f995_sfp.text = "87"
-                f995_sfb.text = "BHB"
-                f995_sfc.text = "MAG"
-                f995_sfs.text = stats
-            elif rec_type == "Gesperrt":
-                f995_sfp.text = "30"
-                f995_sfb.text = "BHB"
-                f995_sfc.text = "GDISS"
-                f995_sfs.text = stats
-                sperrjahr, sperrmonat = record.find(
-                    sperre_ende).text.split("-")
-                sperrtag = str(
-                    monthrange(int(sperrjahr), int(sperrmonat))[1]).zfill(2)
-                sperrdatum = "-".join([sperrjahr, sperrmonat, sperrtag])
-                f995_sfn.text = f"Arbeit gesperrt bis {sperrdatum}"
-                record.find(sperre_ende).text = sperrdatum
-            else:
-                continue
-
-            record.append(field995)
-
-    return record_list
-
-
-def write_tree(record_list, out_dir):
+# DONE
+def write_loadfile(record_list, out_dir):
     """Schreibt "tree" in die Datei "outfile". Akzeptiert ein tree-Objekt und einen
     String (Dateiname für die Ausgabedatei)
     """
     filename = os.path.join(
         out_dir, "loadfile" + "_{:%Y-%m-%d_%H-%M}.xml".format(datetime.datetime.now()))
-    output = ET.fromstring(template)
+    writer = pymarc.XMLWriter(open(filename, "wb"))
     for record in record_list:
-        output.append(record)
-
-    tree = ET.ElementTree(output)
-    tree.write(filename, encoding="utf-8", xml_declaration=True)
-
-
-def write_report(record_list, flag, report_dir=""):
-    xp_name = make_xpath("100", "**", "a")
-    xp_title = make_xpath("245", "**", "a")
-    # header, je nach report
-    if flag == "loadfile":
-        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(
-            datetime.datetime.now()) + "_report-loadfile.txt")
-        header = " " * 27 + "*** Zu ladende Datensätze {:%Y-%m-%d %H:%M} ***\n".format(
-            datetime.datetime.now()) + " " * 27 + "=" * 51 + "\n\n"
-    elif flag == "duplicates":
-        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(
-            datetime.datetime.now()) + "_report_duplicates.txt")
-        header = " " * 27 + "*** Nicht zu ladende Duplikate {:%Y-%m-%d %H:%M} ***\n".format(
-            datetime.datetime.now()) + " " * 27 + "=" * 51 + "\n\n"
-    else:
-        header = ""
-
-    table = TT.Texttable()
-    table.header(["VerfasserIn", "Titel", "Art der Hochschulschrift"])
-    table.set_deco(table.HEADER)
-    table.set_cols_width([25, 50, 25])
-    for record in record_list:
-        name = record.find(xp_name).text
-        title = record.find(xp_title).text
-        hss_type = check_type(record)
-        table.add_row([name, title, hss_type])
-
-    tbl_str = table.draw()
-
-    with open(filename, "w", encoding="utf-8") as fh:
-        fh.write(header)
-        fh.write(tbl_str)
-
+        writer.write(record)
+    writer.close()
 
 def move_files_to_arch(stage, arch):
     """Verschiebt die Dateien von stage nach arch."""
@@ -348,3 +290,14 @@ def main():
             fh.write("Codes, die in VL nicht vorhanden sind:\n")
             for code in bad_code:
                 fh.write("\n" + str(code))
+
+inst_dict = get_institution_dict()
+bad_code = []
+def testit():
+    outdir = "tests/loadfiles"
+    l = read_input_files("tests/testdata/input")
+
+    for rec in l:
+        process_record(rec)
+
+    write_loadfile(l, outdir)

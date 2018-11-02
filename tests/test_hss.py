@@ -26,3 +26,9 @@ def test_check_type():
     assert check_type(reclist[3]) == "Elektronisch zugänglich"
     assert check_type(reclist[4]) == "Gesperrt"
     assert check_type(reclist[5]) == "Elektronisch nicht zugänglich"
+
+def test_dedup():
+    pass
+
+def test_process_record():
+    pass

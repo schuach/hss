@@ -48,20 +48,23 @@ def get_institution_dict():
         for inst in fakultaet:
             inst_label = inst.attrib['LABEL']
             inst_id = inst.attrib["ID"]
-            inst_dict[(fak_label, inst_label)] = inst_id
+            if not inst_id == "Externe Institute":
+                inst_dict[inst_label] = (fak_label, inst_id)
+            else:
+                continue
 
     return inst_dict
 
 # TODO als lokale Variable implementieren
 inst_dict = get_institution_dict()
-def get_inst_code(code_dict, inst_strs):
+def get_inst_code(code_dict, institut):
     """Return the code for a given (fakultät, inst)-tuple of strings."""
-    if inst_strs[0] == "UNI for LIFE":
-        return "ioo:UG:UL"
-    elif inst_strs in code_dict.keys():
-        return code_dict[inst_strs]
+    if institut == "UNI for LIFE":
+        return ("UNI for LIFE", "ioo:UG:UL")
+    elif institut in code_dict.keys():
+        return code_dict[institut]
     else:
-        return None
+        return None, None
 
 def make_xpath(tag, ind, subfield):
     """Gibt einen XPATH-Ausdruck als String zurück"""
@@ -176,26 +179,35 @@ def make_tree(record_list):
             el_zug.append(record)
 
 def inventory(record_list):
-    """Fügt das Feld für den physischen Bestand hinzu"""
+    """Fügt das Feld für den physischen Bestand hinzu
+
+    """
+
     field970_sfd = make_xpath("970", "2 ", "d")
     sperre_ende = make_xpath("971", "7 ", "c")
 
     for record in record_list:
-    # Instituscode für VL
-        fakultaet = record.find(make_xpath("971", "5 ", "b")).text
-        institut = record.find(make_xpath("971", "5 ", "c")).text
-        inst_element = record.find(make_xpath("971", "5 ", "c"))
-        inst_code = get_inst_code(inst_dict, (fakultaet, institut))
+        # Instituscode für VL
+        # Wenn ein Treffer für den Institutsnamen vorhanden ist, wird die Fakultät
+        # passend überschrieben. Der Institutsname wird nicht geändert. Wenn UNI for LIFE
+        # wird der entsprechende Code eingetragen und das Institut in $$c entfernt.
+        if record.find(make_xpath("971", "5 ", "b")).text == "UNI for LIFE":
+            institut = "UNI for LIFE"
+        else:
+            institut = record.find(make_xpath("971", "5 ", "c")).text
+
+        fakultaet, inst_code = get_inst_code(inst_dict, institut)
 
         if inst_code is None:
-            bad_code.append((fakultaet, institut))
+            bad_code.append(institut)
         elif inst_code == "ioo:UG:UL":
             record.find(make_xpath("971", "5 ", "0")).text = inst_code
             record.find(make_xpath("971", "5 ", "c")).text = ""
         else:
             record.find(make_xpath("971", "5 ", "0")).text = inst_code
+            record.find(make_xpath("971", "5 ", "b")).text = fakultaet
 
-
+        # record type checken, um entsprechende Verarbeitung machen zu können
         rec_type = check_type(record)
 
         # generate 005 field

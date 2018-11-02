@@ -8,39 +8,21 @@ from sys import argv
 import requests
 from calendar import monthrange
 
-if len (argv) == 1:
+if len(argv) == 1:
     machine = "w"
 else:
     machine = argv[1]
-
-# Namespaces
-ET.register_namespace('marc', 'http://www.loc.gov/MARC21/slim')
-ns = {'marc': 'http://www.loc.gov/MARC21/slim'}
-
-# Wurzelelment für die Output-Files
-template = """
-<marc:collection xmlns:marc="http://www.loc.gov/MARC21/slim" 
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-xsi:schemaLocation="http://www.loc.gov/MARC21/slim 
-http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd"/>
-"""
-
-# Elemente, in die die Datensätze einsortiert werden
-el_zug = ET.fromstring(template)
-el_nicht = ET.fromstring(template)
-gesperrt = ET.fromstring(template)
-
-# Liste für die Institutscodes, die nicht in VL definiert sind
-bad_code = []
 
 def get_institution_dict():
     """Return a dictionary of inst_strs and inst_codes."""
 
     inst_dict = {}
-    vl_mets = requests.get("http://unipub.uni-graz.at/UGR/mets/classification/id/110856")
+    vl_mets = requests.get(
+        "http://unipub.uni-graz.at/UGR/mets/classification/id/110856")
     tree = ET.fromstring(vl_mets.text)
 
-    fakultaeten = tree.findall('.//*[@LABEL="Fakultäten der Universität Graz"]/*')
+    fakultaeten = tree.findall(
+        './/*[@LABEL="Fakultäten der Universität Graz"]/*')
 
     # das dict befüllen
     for fakultaet in fakultaeten:
@@ -49,38 +31,27 @@ def get_institution_dict():
         for inst in fakultaet:
             inst_label = inst.attrib['LABEL']
             inst_id = inst.attrib["ID"]
-            inst_dict[(fak_label, inst_label)] = inst_id
+            if not inst_id == "Externe Institute":
+                inst_dict[inst_label] = (fak_label, inst_id)
+            else:
+                continue
 
     return inst_dict
 
-# TODO als lokale Variable implementieren
-inst_dict = get_institution_dict()
-def get_inst_code(code_dict, inst_strs):
+
+def get_inst_code(code_dict, institut):
     """Return the code for a given (fakultät, inst)-tuple of strings."""
-    if inst_strs[0] == "UNI for LIFE":
-        return "ioo:UG:UL"
-    elif inst_strs in code_dict.keys():
-        return code_dict[inst_strs]
+    if institut == "UNI for LIFE":
+        return ("UNI for LIFE", "ioo:UG:UL")
+    elif institut in code_dict.keys():
+        return code_dict[institut]
     else:
-        return None
-
-def make_xpath(tag, ind, subfield):
-    """Gibt einen XPATH-Ausdruck als String zurück"""
-    if "*" in ind:
-        if ind == "**":
-            return f'./*[@tag="{tag}"]/*[@code="{subfield}"]'
-        elif ind[0] == "*":
-            return f'./*[@tag="{tag}"][@ind2="{ind[1]}"]/*[@code="{subfield}"]'
-        elif ind[1] == "*":
-            return f'./*[@tag="{tag}"][@ind1="{ind[0]}"]/*[@code="{subfield}"]'
-    else:
-        return f'./*[@tag="{tag}"][@ind1="{ind[0]}"][@ind2="{ind[1]}"]/*[@code="{subfield}"]'
-
+        return None, None
 
 def read_input_files(indir):
     """Liest alle Input-Files und gibt eine Liste mit record-Objekten (eines pro
     Datensatz) zurück. Wenn eine Arbeit von mehreren Personen eingereicht wurde,
-	wird nur ein record hinzugefügt.
+        wird nur ein record hinzugefügt.
     """
     input_dir = indir
     infiles = []
@@ -101,12 +72,6 @@ def read_input_files(indir):
                 records.append(rec)
 
     return records
-
-def print_names(record_list):
-    """Helper function die für jeden Datensatz in einer Liste den Inhalt von
-    Feld 100 $$a ausgibt"""
-    for record in record_list:
-        print(record.find(make_xpath("100","**","a")).text)
 
 def dedup(record_list):
     """Entfernt dublette Datensätze, die dadurch entstehen, dass mehrere
@@ -147,7 +112,6 @@ def dedup(record_list):
             else:
                 dups.append(record)
 
-
     return outlist, dups
 
 
@@ -156,12 +120,21 @@ def check_type(record):
     und checkt, zu welchem Typ Hochschulschrift es gehört. Gibt je nach Typ
     einen String zurück.
     """
-    if record.find('./*[@tag="971"][@ind1="7"]/*[@code="i"]', ns) is not None:
-        return "Elektronisch nicht zugänglich"
-    elif record.find('./*[@tag="971"][@ind1="7"]/*[@code="a"]', ns) is not None:
-        return "Gesperrt"
-    else:
+
+    hss_type = None
+    for f in record.get_fields("971"):
+        if not f.indicators[0] == "7":
+            continue
+        else:
+            if "Arbeit gesperrt" in f.value():
+                hss_type = "Gesperrt"
+            elif "AutorIn stimmte der Freigabe des elektronischen Dokuments nicht zu" in f.value():
+                hss_type = "Elektronisch nicht zugänglich"
+
+    if hss_type == None:
         return "Elektronisch zugänglich"
+    else:
+        return hss_type
 
 def make_tree(record_list):
     """Ordnet jeden record dem jeweiligen xml-Baum zu. Akzeptiert eine Liste
@@ -175,6 +148,7 @@ def make_tree(record_list):
             gesperrt.append(record)
         else:
             el_zug.append(record)
+
 
 def inventory(record_list):
     """Fügt das Feld für den physischen Bestand hinzu"""
@@ -196,7 +170,6 @@ def inventory(record_list):
         else:
             record.find(make_xpath("971", "5 ", "0")).text = inst_code
 
-
         rec_type = check_type(record)
 
         # generate 005 field
@@ -206,7 +179,8 @@ def inventory(record_list):
 
         # Datum in 008/00-05 schreiben
         field008 = record.find('./*[@tag="008"]')
-        field008.text = datetime.datetime.now().strftime("%y%m%d") + field008.text[6:]
+        field008.text = datetime.datetime.now().strftime(
+            "%y%m%d") + field008.text[6:]
 
         # Entfernt die Wickelfelder
         for wf in record.findall('./*[@tag="974"]', ns):
@@ -222,7 +196,8 @@ def inventory(record_list):
             # Feld für Inventar einfügen
 
             # Zuerst das Feld mit den Subfeldern vorbereiten
-            field995 = ET.Element("marc:datafield", attrib={'tag': '995', 'ind1': ' ', 'ind2': " "})
+            field995 = ET.Element(
+                "marc:datafield", attrib={'tag': '995', 'ind1': ' ', 'ind2': " "})
             f995_sfp = ET.Element("marc:subfield", attrib={'code': "p"})
             f995_sfb = ET.Element("marc:subfield", attrib={'code': "b"})
             f995_sfc = ET.Element("marc:subfield", attrib={'code': "c"})
@@ -258,24 +233,27 @@ def inventory(record_list):
                 f995_sfb.text = "BHB"
                 f995_sfc.text = "GDISS"
                 f995_sfs.text = stats
-                sperrjahr, sperrmonat = record.find(sperre_ende).text.split("-")
-                sperrtag = str(monthrange(int(sperrjahr), int(sperrmonat))[1]).zfill(2)
+                sperrjahr, sperrmonat = record.find(
+                    sperre_ende).text.split("-")
+                sperrtag = str(
+                    monthrange(int(sperrjahr), int(sperrmonat))[1]).zfill(2)
                 sperrdatum = "-".join([sperrjahr, sperrmonat, sperrtag])
                 f995_sfn.text = f"Arbeit gesperrt bis {sperrdatum}"
                 record.find(sperre_ende).text = sperrdatum
             else:
                 continue
 
-
             record.append(field995)
 
     return record_list
+
 
 def write_tree(record_list, out_dir):
     """Schreibt "tree" in die Datei "outfile". Akzeptiert ein tree-Objekt und einen
     String (Dateiname für die Ausgabedatei)
     """
-    filename = os.path.join(out_dir, "loadfile" + "_{:%Y-%m-%d_%H-%M}.xml".format(datetime.datetime.now())) 
+    filename = os.path.join(
+        out_dir, "loadfile" + "_{:%Y-%m-%d_%H-%M}.xml".format(datetime.datetime.now()))
     output = ET.fromstring(template)
     for record in record_list:
         output.append(record)
@@ -283,16 +261,21 @@ def write_tree(record_list, out_dir):
     tree = ET.ElementTree(output)
     tree.write(filename, encoding="utf-8", xml_declaration=True)
 
+
 def write_report(record_list, flag, report_dir=""):
     xp_name = make_xpath("100", "**", "a")
     xp_title = make_xpath("245", "**", "a")
     # header, je nach report
     if flag == "loadfile":
-        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now()) + "_report-loadfile.txt" )
-        header = " " * 27 + "*** Zu ladende Datensätze {:%Y-%m-%d %H:%M} ***\n".format(datetime.datetime.now())  + " " * 27 + "=" * 51 + "\n\n"
+        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(
+            datetime.datetime.now()) + "_report-loadfile.txt")
+        header = " " * 27 + "*** Zu ladende Datensätze {:%Y-%m-%d %H:%M} ***\n".format(
+            datetime.datetime.now()) + " " * 27 + "=" * 51 + "\n\n"
     elif flag == "duplicates":
-        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(datetime.datetime.now()) + "_report_duplicates.txt")
-        header = " " * 27 + "*** Nicht zu ladende Duplikate {:%Y-%m-%d %H:%M} ***\n".format(datetime.datetime.now())  + " " * 27 + "=" * 51 + "\n\n"
+        filename = os.path.join(report_dir, "{:%Y-%m-%d_%H-%M}".format(
+            datetime.datetime.now()) + "_report_duplicates.txt")
+        header = " " * 27 + "*** Nicht zu ladende Duplikate {:%Y-%m-%d %H:%M} ***\n".format(
+            datetime.datetime.now()) + " " * 27 + "=" * 51 + "\n\n"
     else:
         header = ""
 
@@ -312,12 +295,14 @@ def write_report(record_list, flag, report_dir=""):
         fh.write(header)
         fh.write(tbl_str)
 
+
 def move_files_to_arch(stage, arch):
     """Verschiebt die Dateien von stage nach arch."""
     # Liste der Input-Dateien erstellen
     files = []
     for filename in os.listdir(stage):
-        files.append((os.path.join(stage, filename), os.path.join(arch, filename)))
+        files.append(
+            (os.path.join(stage, filename), os.path.join(arch, filename)))
 
     for fromfile, tofile in files:
         os.rename(fromfile, tofile)
@@ -341,16 +326,15 @@ def main():
     elif machine == "t":
         # Pfade für Tests relativ
         stage = "input"
-        rep_dir =  "reports"
-        arch =  "arch"
-        loadfiles =  "loadfiles"
+        rep_dir = "reports"
+        arch = "arch"
+        loadfiles = "loadfiles"
 
     # Pfade für Tests Windows
     # stage = "C:/Users/schuhs/projects/hss/input"
     # rep_dir =  "C:/Users/schuhs/projects/hss/reports"
     # arch =  "C:/Users/schuhs/projects/hss/arch"
     # loadfiles =  "c:/Users/schuhs/projects/hss/loadfiles"
-
 
     # Verarbeitung
     records, dups = dedup(read_input_files(stage))

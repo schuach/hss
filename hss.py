@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import xml.etree.ElementTree as ET
+import pymarc
 import os
 import datetime
-import texttable as TT
+# import texttable as TT
 from sys import argv
 import requests
 from calendar import monthrange
@@ -77,7 +78,7 @@ def make_xpath(tag, ind, subfield):
 
 
 def read_input_files(indir):
-    """Liest alle Input-Files und gibt eine Liste mit record-Elmenten (eines pro
+    """Liest alle Input-Files und gibt eine Liste mit record-Objekten (eines pro
     Datensatz) zurück. Wenn eine Arbeit von mehreren Personen eingereicht wurde,
 	wird nur ein record hinzugefügt.
     """
@@ -92,12 +93,12 @@ def read_input_files(indir):
         else:
             infiles.append(os.path.join(input_dir, filename))
 
-    # die einzelen Datensätze deduplizieren und zur Liste records hinzufügen
-    for file in infiles:
-        tree = ET.parse(file)
-        root = tree.getroot()
-        for record in root.findall("./marc:record", ns):
-            records.append(record)
+    # die einzelen Datensätze zur Liste records hinzufügen
+    for infile in infiles:
+        with open(infile) as fh:
+            reader = pymarc.parse_xml_to_array(fh)
+            for rec in reader:
+                records.append(rec)
 
     return records
 
@@ -363,4 +364,3 @@ def main():
             fh.write("Codes, die in VL nicht vorhanden sind:\n")
             for code in bad_code:
                 fh.write("\n" + str(code))
-main()

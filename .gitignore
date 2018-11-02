@@ -2,6 +2,7 @@ testdaten_bis_20171207.zip
 *.spec
 mehrere_verf
 loadfiles
+.pytest_cache
 input
 input_large
 input.org

@@ -1,9 +1,10 @@
 from ..hss import *
+import re
 
 def test_read_input_files():
     indir_small = "tests/testdata/input"
     small_list = read_input_files(indir_small)
-    assert len(small_list) == 8
+    assert len(small_list) == 9
     assert type(small_list[0]) == pymarc.Record
 
 def test_get_institution_dict():
@@ -28,7 +29,23 @@ def test_check_type():
     assert check_type(reclist[5]) == "Elektronisch nicht zugänglich"
 
 def test_dedup():
-    pass
+    reclist = read_input_files("tests/testdata/input")
+    outlist, dups = dedup(reclist)
+    assert len(reclist) == 9
+    assert len(outlist) == 7
+    assert len(dups) == 2
 
 def test_process_record():
-    pass
+    reclist = read_input_files("tests/testdata/input")
+    for r in reclist:
+        process_record(r)
+
+    innerhuber = reclist[0]    # el. zug., duplikat
+    oberecker = reclist[1]     # gesperrt, keine Institutszuordnung
+    absengener = reclist[3]    # Fakultät/Institut mismatch, duplikat
+    pajalic = reclist[5]       # el. nicht zugänglich
+    santner = reclist[8]       # UNI for LIFE
+
+    for r in reclist:
+        assert r["005"]
+        assert re.match(r'\d{6}\|', r["008"].data)

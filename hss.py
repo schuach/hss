@@ -94,33 +94,30 @@ def check_type(record):
         return hss_type
 
 
-# TODO
+# DONE
 def dedup(record_list):
     """Entfernt dublette Datensätze, die dadurch entstehen, dass mehrere
     Personen gemeinsam eine Arbeit verfassen. Nimmt eine Liste von
     record-Elementen als Input und gibt eine deduplizierte Liste zurück.
     """
 
-    field_100 = make_xpath("100", "**", "a")
-    field_700 = make_xpath("700", "**", "a")
-
     authors = []
     outlist = []
     dups = []
 
     for record in record_list:
-        author = record.find('.//*[@tag="100"]/*[@code="a"]').text
+        author = record["100"]["a"]
 
         # prüfen ob MARC 700 vorhanden
-        if record.find(field_700) is None:
+        if not record["700"]:
             authors.append(author)
             outlist.append(record)
             continue
         else:
             people = []
             people.append(author)
-            for p in record.findall(field_700):
-                people.append(p.text)
+            for p in record.get_fields("700"):
+                people.append(p["a"])
 
             dup = False
             for p in people:
@@ -250,6 +247,10 @@ def move_files_to_arch(stage, arch):
         os.rename(fromfile, tofile)
 
 
+# TODO
+def write_stats():
+    pass
+
 def main():
     # Pfade
     # Pfade für PROD
@@ -301,3 +302,6 @@ def testit():
         process_record(rec)
 
     write_loadfile(l, outdir)
+
+    print(f"Anzahl der Datensätze: {len(l)}")
+    print(f"Anzahl nach Deduplikation: {len(dedup(l)[0])}")

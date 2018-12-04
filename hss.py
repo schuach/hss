@@ -356,7 +356,8 @@ def main():
     write_tree(inventory(records), loadfiles)
     write_report(records, "loadfile", rep_dir)
     write_report(dups, "duplicates", rep_dir)
-    # move_files_to_arch(stage, arch)
+    if machine != "t":
+        move_files_to_arch(stage, arch)
 
     if len(bad_code) > 0:
         with open(rep_dir + "/bad_codes.txt", "w") as fh:

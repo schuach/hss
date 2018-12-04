@@ -229,10 +229,13 @@
   | s        | Statistics Note |          | xx        | xx    |
 
 * Input
-  | Name         | Typ      | Zweite VerfasserInnen |
-  |--------------+----------+-----------------------|
-  | Ackerl       | el nicht |                       |
-  | Ahn          | gesperrt |                       |
-  | Aichner      | el zug   |                       |
-  | Bretterhofer |          | Innerhuber            |
-  | Innerhuber   |          | Bretterhofer          |
+  | Name         | Typ                        | Zweite VerfasserInnen |
+  |--------------+----------------------------+-----------------------|
+  | Pajalic      | el nicht                   |                       |
+  | Sarkleti     | gesperrt                   |                       |
+  | Cucchiara    | el zug                     |                       |
+  | Absenger     | Institut/Fakultät-Mismatch |                       |
+  | Santner      | UNI for LIFE mit Institut  |                       |
+  | Oberecker    | NaWi/NN                    |                       |
+  | Bretterhofer |                            | Innerhuber            |
+  | Innerhuber   |                            | Bretterhofer          |

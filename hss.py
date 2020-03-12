@@ -53,6 +53,17 @@ def get_institution_dict():
             else:
                 continue
 
+            # checken, ob darunter noch weitere Institute liegen
+            if list(inst):
+                for inst in list(inst):
+                    inst_label = inst.attrib['LABEL']
+                    inst_id = inst.attrib["ID"]
+                    if not inst_id == "Externe Institute":
+                        inst_dict[inst_label] = (fak_label, inst_id)
+                    else:
+                        continue
+
+
     return inst_dict
 
 # TODO als lokale Variable implementieren
